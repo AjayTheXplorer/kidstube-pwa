@@ -1,21 +1,30 @@
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
 export default function PlayerScreen() {
-  const { videoId } = useParams();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
+  // URL के पाथ से videoId निकालने का सीधा तरीका (जैसे /play/12345)
+  const pathParts = location.pathname.split('/');
+  const videoId = pathParts[pathParts.length - 1]; 
+
   const videoTitle = searchParams.get('title') || 'वीडियो चल रहा है...';
 
-  // अगर URL में videoId नहीं है या वह 'undefined' है, तो होम पर वापस भेजें
+  console.log("Path:", location.pathname);
+  console.log("Extracted Video ID:", videoId);
+
   useEffect(() => {
-    if (!videoId || videoId === 'undefined') {
-      navigate('/');
+    if (!videoId || videoId === 'undefined' || videoId === 'play') {
+      console.log("Video ID missing, redirecting to home");
+      navigate('/', { replace: true });
     }
   }, [videoId, navigate]);
 
-  if (!videoId || videoId === 'undefined') return null;
+  if (!videoId || videoId === 'undefined' || videoId === 'play') {
+    return null;
+  }
 
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
 
@@ -30,7 +39,6 @@ export default function PlayerScreen() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </button>
-        {/* यहाँ अब वीडियो का असली टाइटल दिखेगा */}
         <h1 className="text-xl font-bold line-clamp-1">{decodeURIComponent(videoTitle)}</h1>
       </header>
 
