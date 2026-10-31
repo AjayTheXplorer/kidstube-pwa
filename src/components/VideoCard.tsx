@@ -1,17 +1,14 @@
-import { useNavigate } from 'react-router-dom';
 import type { VideoItem } from '../types';
 
 interface Props {
   video: VideoItem;
+  onClick: () => void; // <-- हमने यहाँ onClick को प्रॉप्स में जोड़ दिया है
 }
 
-export default function VideoCard({ video }: Props) {
-  const navigate = useNavigate();
-
+export default function VideoCard({ video, onClick }: Props) {
   return (
     <div 
-      // यहाँ हम URL में टाइटल भी भेज रहे हैं (encodeURIComponent का उपयोग करके)
-      onClick={() => navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}`)}
+      onClick={onClick} // <-- यहाँ इसे इस्तेमाल किया है
       className="bg-slate-800 rounded-xl overflow-hidden cursor-pointer hover:bg-slate-700 transition-colors shadow-lg"
     >
       <div className="relative aspect-video">

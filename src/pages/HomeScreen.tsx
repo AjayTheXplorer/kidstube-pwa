@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- यह इम्पोर्ट जोड़ें
 import { useCategories } from '../hooks/useCategories';
 import { useVideos } from '../hooks/useVideos';
 import CategoryTabs from '../components/CategoryTabs';
 import VideoCard from '../components/VideoCard';
+import type { VideoItem } from '../types';
 
 export default function HomeScreen() {
   const { categories, defaultCategory, loading: catLoading } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const navigate = useNavigate(); // <-- यहाँ useNavigate को इनिशियलाइज़ करें
 
   // जब डिफ़ॉल्ट कैटेगरी लोड हो जाए, तो उसे सेलेक्ट कर लें
   useEffect(() => {
@@ -16,6 +19,11 @@ export default function HomeScreen() {
   }, [defaultCategory, selectedCategory]);
 
   const { videos, loading: vidLoading } = useVideos(selectedCategory);
+
+  // यह फंक्शन वीडियो पर क्लिक करने पर राउटिंग को हैंडल करेगा
+  const handleVideoClick = (video: VideoItem) => {
+    navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}`);
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-white pb-10">
@@ -51,7 +59,12 @@ export default function HomeScreen() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
+              // यहाँ हमने onClick प्रॉप्स पास कर दिया है
+              <VideoCard 
+                key={video.id} 
+                video={video} 
+                onClick={() => handleVideoClick(video)} 
+              />
             ))}
           </div>
         )}
