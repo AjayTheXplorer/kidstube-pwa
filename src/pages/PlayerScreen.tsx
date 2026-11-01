@@ -11,15 +11,13 @@ export default function PlayerScreen() {
   const videoTitle = searchParams.get('title') || 'वीडियो चल रहा है...';
   const category = searchParams.get('category') || 'Sanskrit';
 
-  // वीडियो फुल स्क्रीन में है या छोटा (minimized) है
-  const [isMinimized, setIsMinimized] = useState(false);
+  // शुरुआत में लिस्ट दिखेगी (isMinimized = true)
+  const [isMinimized, setIsMinimized] = useState(true);
 
-  // सजेशन वीडियो लोड करने के लिए हुक
   const { videos } = useVideos(category);
-  // जो वीडियो अभी चल रहा है, उसे सजेशन लिस्ट से हटा दें
   const suggestedVideos = videos.filter(v => v.videoId !== videoId);
 
-  // स्क्रीन रोटेशन और फुलस्क्रीन का लॉजिक
+  // रोटेशन और फुलस्क्रीन लॉजिक
   useEffect(() => {
     const enterFullscreenAndRotate = async () => {
       try {
@@ -51,19 +49,19 @@ export default function PlayerScreen() {
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col overflow-hidden text-white">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden text-white">
       
       {/* 
-        वीडियो कंटेनर:
-        अगर फुल स्क्रीन है, तो पूरी स्क्रीन लेगा। 
-        अगर छोटा है, तो ऊपर 1/3 हिस्सा लेगा (या 16:9 रेशियो)।
+        वीडियो सेक्शन: 
+        अगर isMinimized true है (लिस्ट खुली है), तो यह 50% जगह लेगा।
+        अगर false है, तो पूरी स्क्रीन (flex-1) लेगा।
       */}
       <div 
-        className={`relative w-full bg-black transition-all duration-300 ${
-          isMinimized ? 'aspect-video flex-none' : 'flex-1'
+        className={`relative w-full transition-all duration-300 ease-in-out bg-black ${
+          isMinimized ? 'h-[50vh]' : 'flex-1'
         }`}
       >
-        {/* YouTube iframe (अब इसमें pointer-events-none नहीं है, ताकि कंट्रोल्स काम करें) */}
+        {/* YouTube iframe - इसमें कोई ओवरले नहीं है, कंट्रोल्स पूरी तरह काम करेंगे */}
         <iframe
           className="absolute top-0 left-0 w-full h-full border-none"
           src={embedUrl}
@@ -73,40 +71,55 @@ export default function PlayerScreen() {
           referrerPolicy="strict-origin-when-cross-origin"
         ></iframe>
 
-        {/* बैक बटन (ऊपर बाईं ओर) */}
-        <button 
-          onClick={() => navigate(-1)} 
-          className="absolute top-4 left-4 p-2 bg-black/60 hover:bg-black/90 rounded-full text-white z-20 backdrop-blur-sm"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-        </button>
+        {/* टॉप बार: बैक बटन, टाइटल और स्क्रीन टॉगल (Expand/Minimize) बटन */}
+        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between z-20 pointer-events-none">
+          
+          <div className="flex items-center gap-3 pointer-events-auto">
+            {/* बैक बटन */}
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 bg-black/60 hover:bg-black/90 rounded-full"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+            
+            <h1 className="text-white font-semibold text-lg drop-shadow-md truncate max-w-[50vw]">
+              {decodeURIComponent(videoTitle)}
+            </h1>
+          </div>
 
-        {/* मिनिमाइज़ / एक्सपैंड बटन (नीचे दाईं ओर) */}
-        <button 
-          onClick={() => setIsMinimized(!isMinimized)}
-          className="absolute bottom-4 right-4 p-2 bg-black/60 hover:bg-black/90 rounded-full text-white z-20 backdrop-blur-sm"
-        >
-          {isMinimized ? (
-            // एक्सपैंड आइकन (ऊपर तीर)
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          ) : (
-            // मिनिमाइज़ आइकन (नीचे तीर)
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
-        </button>
+          {/* फुल स्क्रीन / मिनिमाइज़ (Expand / Hide List) बटन */}
+          <button 
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="p-2 bg-black/60 hover:bg-black/90 rounded-full pointer-events-auto"
+          >
+            {isMinimized ? (
+              // एक्सपैंड (ऊपर-नीचे तीर) आइकन
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            ) : (
+              // मिनिमाइज़ (लिस्ट दिखाने) आइकन
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* सजेशन लिस्ट (यह सिर्फ तब दिखेगी जब वीडियो मिनिमाइज़ होगा) */}
-      {isMinimized && (
-        <div className="flex-1 overflow-y-auto bg-slate-900 p-4 border-t border-slate-700">
+      {/* सजेशन लिस्ट सेक्शन - यह सिर्फ तब दिखेगा जब isMinimized true हो */}
+      <div 
+        className={`w-full bg-slate-900 overflow-y-auto transition-all duration-300 ease-in-out ${
+          isMinimized ? 'flex-1 opacity-100' : 'h-0 opacity-0 hidden'
+        }`}
+      >
+        <div className="p-4">
           <h2 className="text-lg font-bold text-slate-300 mb-3">आगे देखें (Watch Next)</h2>
           
+          {/* हॉरिजॉन्टल स्क्रॉलर */}
           <div className="flex overflow-x-auto gap-4 pb-6 scrollbar-hide">
             {suggestedVideos.length > 0 ? (
               suggestedVideos.map((video) => (
@@ -114,7 +127,7 @@ export default function PlayerScreen() {
                   <VideoCard 
                     video={video} 
                     onClick={() => {
-                      // नया वीडियो चुनने पर वापस फुल स्क्रीन में जाएं
+                      // नया वीडियो चुनने पर फिर से फुल स्क्रीन में जाएं
                       setIsMinimized(false);
                       navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}&category=${encodeURIComponent(video.category)}`);
                     }} 
@@ -126,7 +139,7 @@ export default function PlayerScreen() {
             )}
           </div>
         </div>
-      )}
+      </div>
 
     </div>
   );
