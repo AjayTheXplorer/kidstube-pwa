@@ -23,7 +23,7 @@ export default function HomeScreen() {
   // यह फंक्शन वीडियो पर क्लिक करने पर राउटिंग को हैंडल करेगा
   const handleVideoClick = (video: VideoItem) => {
     console.log("Clicking video:", video.videoId); 
-    navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}`);
+    navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}&category=${encodeURIComponent(video.category)}`);
   };
 
   return (
