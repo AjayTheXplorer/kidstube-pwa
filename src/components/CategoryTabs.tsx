@@ -3,7 +3,7 @@ import type { Category } from '../types';
 interface Props {
   categories: Category[];
   selectedCategory: string;
-  onSelectCategory: (category: string) => void;
+  onSelectCategory: (categoryId: string) => void;
 }
 
 export default function CategoryTabs({ categories, selectedCategory, onSelectCategory }: Props) {
@@ -12,9 +12,9 @@ export default function CategoryTabs({ categories, selectedCategory, onSelectCat
       {categories.map((cat) => (
         <button
           key={cat.id}
-          onClick={() => onSelectCategory(cat.name)}
+          onClick={() => onSelectCategory(cat.id)} // यहाँ ID पास करें
           className={`px-5 py-2 rounded-full whitespace-nowrap font-medium transition-colors ${
-            selectedCategory === cat.name
+            selectedCategory === cat.id // यहाँ ID से तुलना करें
               ? 'bg-blue-600 text-white'
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
           }`}

@@ -7,11 +7,11 @@ export default function PlayerScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const category = searchParams.get('category') || 'Sanskrit';
+  const categoryId = searchParams.get('categoryId') || '';
 
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const { videos } = useVideos(category);
+  const { videos } = useVideos([categoryId]);
   const suggestedVideos = videos.filter(v => v.videoId !== videoId);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function PlayerScreen() {
                 className="shrink-0 h-16 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
-                  navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.category)}`, { replace: true });
+                  navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.categoryId)}`, { replace: true });
                 }}
               >
                 <img 

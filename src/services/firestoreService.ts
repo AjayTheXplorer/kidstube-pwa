@@ -4,12 +4,15 @@ import {
 import { db } from "../firebase";
 import type { VideoItem, Category } from "../types";
 
-// --- YouTube URL से ID और Thumbnail निकालना ---
+// --- YouTube URL से ID और Thumbnail निकालना (अधिक सुरक्षित) ---
 export const extractVideoDetails = (url: string) => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  // यह रेगुलर एक्सप्रेशन लगभग सभी YouTube URL फॉर्मेट को सपोर्ट करता है
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
   const match = url.match(regExp);
-  const videoId = (match && match[2].length === 11) ? match[2] : null;
+  const videoId = match ? match[1] : null;
+  
   if (!videoId) return null;
+  
   return {
     videoId,
     thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
@@ -28,9 +31,11 @@ export const subscribeToCategories = (callback: (categories: Category[]) => void
   });
 };
 
-export const addCategoryToDb = async (name: string) => {
+// parentId डिफ़ॉल्ट रूप से null रहेगा (यानी मुख्य कैटेगरी)
+export const addCategoryToDb = async (name: string, parentId: string | null = null) => {
   await addDoc(collection(db, "categories"), {
     name,
+    parentId,
     isDefault: false,
     order: Date.now()
   });
@@ -45,17 +50,26 @@ export const subscribeToDefaultCategory = (callback: (name: string) => void) => 
   const docRef = doc(db, "config", "default_category");
   return onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) callback(docSnap.data().name);
-    else callback("Sanskrit");
+    else callback(""); // अगर डिफ़ॉल्ट सेट नहीं है
   });
 };
 
-// --- वीडियोज़ ---
-export const subscribeToVideos = (category: string, callback: (videos: VideoItem[]) => void) => {
+// --- वीडियोज़ (अब यह कैटेगरी आईडीज़ की एक लिस्ट (Array) लेगा) ---
+export const subscribeToVideos = (categoryIds: string[], callback: (videos: VideoItem[]) => void) => {
+  if (!categoryIds || categoryIds.length === 0) {
+    callback([]);
+    return () => {}; // खाली अनसब्सक्राइब फंक्शन
+  }
+
+  // Firestore में 'in' ऑपरेटर का इस्तेमाल करके एक साथ कई कैटेगरीज़ के वीडियो लाएं
+  // ध्यान दें: Firestore 'in' में अधिकतम 10 आइटम्स ही सपोर्ट करता है।
+  // फिलहाल हमारे पास 10 से कम सब-कैटेगरीज़ होंगी, तो यह बिल्कुल सही काम करेगा।
   const q = query(
     collection(db, "videos"),
-    where("category", "==", category),
+    where("categoryId", "in", categoryIds.slice(0, 10)), 
     orderBy("order", "desc")
   );
+  
   return onSnapshot(q, (snapshot) => {
     const videos = snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -65,7 +79,7 @@ export const subscribeToVideos = (category: string, callback: (videos: VideoItem
   });
 };
 
-export const addVideoToDb = async (url: string, title: string, category: string) => {
+export const addVideoToDb = async (url: string, title: string, categoryId: string) => {
   const details = extractVideoDetails(url);
   if (!details) throw new Error("अमान्य YouTube लिंक");
 
@@ -73,7 +87,7 @@ export const addVideoToDb = async (url: string, title: string, category: string)
     title,
     videoId: details.videoId,
     thumbnailUrl: details.thumbnailUrl,
-    category,
+    categoryId, // अब ID सेव करेंगे
     order: Date.now()
   });
 };

@@ -13,12 +13,15 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col relative">
       
-      {/* हेडर (सभी स्क्रीन पर रहेगा) */}
+      {/* हेडर */}
       <header className="bg-blue-900 p-4 sticky top-0 z-30 flex items-center gap-3 shadow-md">
         <button onClick={() => setIsDrawerOpen(true)} className="p-2 bg-blue-800 rounded-lg hover:bg-blue-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
-        <h1 className="text-2xl font-bold">KidsTube</h1>
+        {/* लोगो क्लिक करने पर होम पर जाएं */}
+        <button onClick={() => handleNavigation('/')} className="text-2xl font-bold hover:text-yellow-400 transition-colors">
+          KidsTube
+        </button>
       </header>
 
       {/* साइड ड्रॉवर */}
@@ -50,7 +53,6 @@ export default function Layout() {
         <div className="flex-1 bg-black/60" onClick={() => setIsDrawerOpen(false)}></div>
       </div>
 
-      {/* यहाँ बाकी स्क्रीन्स रेंडर होंगी */}
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
