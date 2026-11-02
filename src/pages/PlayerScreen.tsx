@@ -7,7 +7,7 @@ export default function PlayerScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const videoTitle = searchParams.get('title') || 'वीडियो चल रहा है...';
+  // const videoTitle = searchParams.get('title') || 'वीडियो चल रहा है...';
   const category = searchParams.get('category') || 'Sanskrit';
 
   const [isMinimized, setIsMinimized] = useState(false);
@@ -52,7 +52,7 @@ export default function PlayerScreen() {
       {/* वीडियो कंटेनर */}
       <div 
         className={`relative w-full transition-all duration-300 ease-in-out bg-black ${
-          isMinimized ? 'h-[60dvh] flex-shrink-0' : 'flex-1'
+          isMinimized ? 'h-[60dvh] shrink-0' : 'flex-1'
         }`}
       >
         {/* YouTube iframe */}
@@ -66,10 +66,10 @@ export default function PlayerScreen() {
         ></iframe>
 
         {/* टाइमलाइन शील्ड */}
-        <div className="absolute bottom-0 left-0 right-0 h-[24px] z-10 pointer-events-auto cursor-default"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-6 z-10 pointer-events-auto cursor-default"></div>
 
         {/* वॉटरमार्क शील्ड */}
-        <div className="absolute bottom-0 right-0 w-[180px] h-[70px] z-10 pointer-events-auto cursor-default"></div>
+        <div className="absolute bottom-0 right-0 w-45 h-17.5 z-10 pointer-events-auto cursor-default"></div>
 
         {/* बैक बटन */}
         <div className="absolute top-4 left-4 z-20 pointer-events-none">
@@ -116,7 +116,7 @@ export default function PlayerScreen() {
             suggestedVideos.map((video) => (
               <div 
                 key={video.id} 
-                className="flex-shrink-0 h-[85%] aspect-video cursor-pointer rounded-xl overflow-hidden shadow-lg border border-slate-700/50"
+                className="shrink-0 h-[85%] aspect-video cursor-pointer rounded-xl overflow-hidden shadow-lg border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
                   navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}&category=${encodeURIComponent(video.category)}`, { replace: true });
