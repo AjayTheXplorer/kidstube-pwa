@@ -7,11 +7,13 @@ export default function PlayerScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
+  // URL से categoryId पढ़ें
   const categoryId = searchParams.get('categoryId') || '';
 
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const { videos } = useVideos([categoryId]);
+  // सिर्फ इसी सब-कैटेगरी के वीडियो लाएं
+  const { videos } = useVideos(categoryId ? [categoryId] : []);
   const suggestedVideos = videos.filter(v => v.videoId !== videoId);
 
   useEffect(() => {
@@ -47,10 +49,7 @@ export default function PlayerScreen() {
   return (
     <div className="fixed top-0 left-0 w-full h-dvh z-50 bg-black flex flex-col overflow-hidden text-white">
       
-      {/* वीडियो कंटेनर - flex-1 ताकि जब लिस्ट खुले तो यह बची हुई पूरी जगह ले */}
       <div className="relative w-full flex-1 transition-all duration-300 ease-in-out bg-black">
-        
-        {/* YouTube iframe */}
         <iframe
           className="absolute top-0 left-0 w-full h-full border-none"
           src={embedUrl}
@@ -60,13 +59,9 @@ export default function PlayerScreen() {
           referrerPolicy="strict-origin-when-cross-origin"
         ></iframe>
 
-        {/* टाइमलाइन शील्ड */}
         <div className="absolute bottom-0 left-0 right-0 h-6 z-10 pointer-events-auto cursor-default"></div>
-
-        {/* वॉटरमार्क शील्ड - w-48 h-20 स्टैंडर्ड क्लास है जो एरर नहीं देगा */}
         <div className="absolute bottom-0 right-0 w-48 h-20 z-10 pointer-events-auto cursor-default"></div>
 
-        {/* बैक बटन */}
         <div className="absolute top-4 left-4 z-20 pointer-events-none">
           <button 
             onClick={() => navigate('/', { replace: true })} 
@@ -79,7 +74,6 @@ export default function PlayerScreen() {
           </button>
         </div>
 
-        {/* टॉगल बटन */}
         <div className="absolute bottom-2 right-2 z-20">
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
@@ -98,8 +92,6 @@ export default function PlayerScreen() {
         </div>
       </div>
 
-      {/* सजेशन लिस्ट */}
-      {/* h-20 (80px) = h-16 (64px) थंबनेल + 8px टॉप/बॉटम पैडिंग */}
       <div 
         className={`w-full bg-slate-900 transition-all duration-300 ease-in-out overflow-hidden shrink-0 ${
           isMinimized ? 'h-20 opacity-100' : 'h-0 opacity-0'
@@ -113,7 +105,8 @@ export default function PlayerScreen() {
                 className="shrink-0 h-16 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
-                  navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.categoryId)}`, { replace: true });
+                  // यहाँ गलती थी: ?category= की जगह ?categoryId= होना चाहिए
+                  navigate(`/play/${video.videoId}?categoryId=${encodeURIComponent(video.categoryId)}`, { replace: true });
                 }}
               >
                 <img 

@@ -15,6 +15,7 @@ export default function AdminScreen() {
   // --- कैटेगरी फॉर्म स्टेट ---
   const [catName, setCatName] = useState('');
   const [parentCatId, setParentCatId] = useState('');
+  const [isMainCategory, setIsMainCategory] = useState(true); 
 
   // --- वीडियो अपलोड के लिए कैस्केडिंग स्टेट ---
   const [selectedPath, setSelectedPath] = useState<{ id: string; name: string }[]>([]);
@@ -39,25 +40,23 @@ export default function AdminScreen() {
     return `${getCategoryPath(cat.parentId, allCats)} > ${cat.name}`;
   };
 
-  const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
-  const categoryOptions = sortedCategories.map(c => ({
-    value: c.id,
-    label: getCategoryPath(c.id, categories)
-  }));
+  // सिर्फ मुख्य कैटेगरीज़ (Parent Categories) की लिस्ट
+  const rootCategoryOptions = categories
+    .filter(c => !c.parentId) // सिर्फ वो जिनका parentId null है
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(c => ({ value: c.id, label: c.name }));
 
   // --- कैस्केडिंग ड्रॉपडाउन के लिए लॉजिक ---
   const handleCategoryChange = (level: number, catId: string) => {
     if (!catId) {
-      // अगर यूज़र ने ड्रॉपडाउन खाली किया, तो उस लेवल और उसके बाद के सभी लेवल हटा दें
       setSelectedPath(prev => prev.slice(0, level));
       return;
     }
     const selectedCat = categories.find(c => c.id === catId);
     if (!selectedCat) return;
 
-    // नया पाथ सेट करें (पिछले लेवल तक का रास्ता रखें और नया जोड़ें)
     setSelectedPath(prev => {
-      const newPath = prev.slice(0, level); // level-1 तक का पाथ रखें
+      const newPath = prev.slice(0, level);
       newPath.push({ id: selectedCat.id, name: selectedCat.name });
       return newPath;
     });
@@ -66,20 +65,25 @@ export default function AdminScreen() {
   // अगले लेवल के लिए कैटेगरीज़ ढूंढें
   const getNextLevelOptions = (level: number) => {
     const currentParentId = level === 0 ? null : selectedPath[level - 1]?.id;
-    return categoryOptions.filter(opt => {
-      const cat = categories.find(c => c.id === opt.value);
-      return cat?.parentId === currentParentId;
-    });
+    return categories
+      .filter(c => c.parentId === currentParentId)
+      .map(c => ({ value: c.id, label: c.name }));
   };
 
   // --- कैटेगरी जोड़ें ---
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName.trim()) return;
+    
+    const finalParentId = isMainCategory ? null : (parentCatId || null);
+
     try {
-      await addCategoryToDb(catName, parentCatId || null);
+      await addCategoryToDb(catName, finalParentId);
       setMessage('कैटेगरी सफलतापूर्वक जोड़ी गई!');
       setCatName('');
+      if (isMainCategory) {
+        setParentCatId('');
+      }
     } catch (error: any) {
       setMessage('त्रुटि: ' + error.message);
     }
@@ -148,7 +152,7 @@ export default function AdminScreen() {
                 <span className="font-medium text-sm">{cat.name}</span>
               </div>
               <button 
-                onClick={() => { setParentCatId(cat.id); window.scrollTo(0, 0); }}
+                onClick={() => { setParentCatId(cat.id); setIsMainCategory(false); window.scrollTo(0, 0); }}
                 className="text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-2 py-1 rounded"
               >
                 + सब-कैटेगरी
@@ -203,6 +207,23 @@ export default function AdminScreen() {
             <form onSubmit={handleAddCategory} className="bg-slate-800 p-6 rounded-xl flex flex-col gap-4 shadow-lg sticky top-24 border border-slate-700">
               <h2 className="text-xl font-bold text-blue-400">नई कैटेगरी बनाएं</h2>
               
+              <div className="flex bg-slate-900 rounded-lg p-1">
+                <button 
+                  type="button"
+                  onClick={() => { setIsMainCategory(true); setParentCatId(''); }}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${isMainCategory ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  मुख्य कैटेगरी
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setIsMainCategory(false)}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${!isMainCategory ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  सब-कैटेगरी
+                </button>
+              </div>
+
               <div>
                 <label className="text-sm text-slate-400 mb-1 block">कैटेगरी का नाम</label>
                 <input 
@@ -214,15 +235,18 @@ export default function AdminScreen() {
                 />
               </div>
 
-              <div>
-                <label className="text-sm text-slate-400 mb-1 block">किसके अंदर बनाना है? (पैरेंट)</label>
-                <CustomSelect 
-                  options={categoryOptions}
-                  value={parentCatId}
-                  onChange={setParentCatId}
-                  placeholder="-- मुख्य कैटेगरी (None) --"
-                />
-              </div>
+              {!isMainCategory && (
+                <div>
+                  <label className="text-sm text-slate-400 mb-1 block">किसके अंदर बनाना है? (पैरेंट)</label>
+                  {/* यहाँ अब सिर्फ rootCategoryOptions पास किए गए हैं */}
+                  <CustomSelect 
+                    options={rootCategoryOptions}
+                    value={parentCatId}
+                    onChange={setParentCatId}
+                    placeholder="-- पैरेंट कैटेगरी चुनें --"
+                  />
+                </div>
+              )}
 
               <button type="submit" className="bg-blue-600 p-3 rounded-lg font-bold hover:bg-blue-500 mt-2 transition-colors">कैटेगरी जोड़ें</button>
             </form>
@@ -253,7 +277,6 @@ export default function AdminScreen() {
               <input type="text" placeholder="वीडियो का नाम" value={videoTitle} onChange={e => setVideoTitle(e.target.value)} className="p-3 bg-slate-700 rounded-lg w-full outline-none" />
             </div>
 
-            {/* कैस्केडिंग ड्रॉपडाउन का UI */}
             <div className="flex flex-col gap-2 border border-slate-600 p-3 rounded-lg bg-slate-900/50">
               <label className="text-sm text-slate-400 font-bold">कैटेगरी चुनें</label>
               {selectedPath.map((selected, level) => (
@@ -268,7 +291,6 @@ export default function AdminScreen() {
                 </div>
               ))}
 
-              {/* अगर पिछले लेवल पर कैटेगरी चुनी गई है और उसकी सब-कैटेगरी हैं, तो अगला ड्रॉपडाउन दिखाएं */}
               {(() => {
                 const nextLevel = selectedPath.length;
                 const nextOptions = getNextLevelOptions(nextLevel);
