@@ -7,14 +7,16 @@ export const useVideos = (category: string) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!category) return;
-
+    if (!category) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const unsubscribe = subscribeToVideos(category, (vids) => {
       setVideos(vids);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [category]);
 

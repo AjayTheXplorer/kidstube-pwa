@@ -1,55 +1,23 @@
 import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  doc, 
+  collection, query, where, orderBy, onSnapshot, addDoc, doc, setDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { VideoItem, Category } from "../types";
-import { getThumbnailUrl } from "../utils/youtubeParser";
 
-// --- वीडियोज़ के लिए ---
-export const subscribeToVideos = (
-  category: string, 
-  callback: (videos: VideoItem[]) => void
-) => {
-  const q = query(
-    collection(db, "videos"),
-    where("category", "==", category),
-    orderBy("order", "desc")
-  );
-
-  return onSnapshot(q, (snapshot) => {
-    const videos = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data()
-    })) as VideoItem[];
-    callback(videos);
-  });
-};
-
-export const addVideoToDb = async (
-  title: string, 
-  videoId: string, 
-  category: string
-) => {
-  const newVideo = {
-    title: title || "Untitled Video",
+// --- YouTube URL से ID और Thumbnail निकालना ---
+export const extractVideoDetails = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = (match && match[2].length === 11) ? match[2] : null;
+  if (!videoId) return null;
+  return {
     videoId,
-    category,
-    thumbnailUrl: getThumbnailUrl(videoId),
-    order: Date.now()
+    thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
   };
-  await addDoc(collection(db, "videos"), newVideo);
 };
 
-// --- कैटेगरीज़ के लिए ---
-export const subscribeToCategories = (
-  callback: (categories: Category[]) => void
-) => {
+// --- कैटेगरीज़ ---
+export const subscribeToCategories = (callback: (categories: Category[]) => void) => {
   const q = query(collection(db, "categories"), orderBy("order", "asc"));
   return onSnapshot(q, (snapshot) => {
     const categories = snapshot.docs.map((doc) => ({
@@ -60,24 +28,52 @@ export const subscribeToCategories = (
   });
 };
 
-export const addCategoryToDb = async (name: string, isDefault: boolean = false) => {
+export const addCategoryToDb = async (name: string) => {
   await addDoc(collection(db, "categories"), {
     name,
-    isDefault,
+    isDefault: false,
     order: Date.now()
   });
 };
 
-// --- डिफ़ॉल्ट कैटेगरी के लिए ---
-export const subscribeToDefaultCategory = (
-  callback: (defaultCategory: string) => void
-) => {
+export const setDefaultCategoryInDb = async (categoryName: string) => {
+  const docRef = doc(db, "config", "default_category");
+  await setDoc(docRef, { name: categoryName }, { merge: true });
+};
+
+export const subscribeToDefaultCategory = (callback: (name: string) => void) => {
   const docRef = doc(db, "config", "default_category");
   return onSnapshot(docRef, (docSnap) => {
-    if (docSnap.exists()) {
-      callback(docSnap.data().name);
-    } else {
-      callback("Sanskrit"); // Fallback
-    }
+    if (docSnap.exists()) callback(docSnap.data().name);
+    else callback("Sanskrit");
+  });
+};
+
+// --- वीडियोज़ ---
+export const subscribeToVideos = (category: string, callback: (videos: VideoItem[]) => void) => {
+  const q = query(
+    collection(db, "videos"),
+    where("category", "==", category),
+    orderBy("order", "desc")
+  );
+  return onSnapshot(q, (snapshot) => {
+    const videos = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    })) as VideoItem[];
+    callback(videos);
+  });
+};
+
+export const addVideoToDb = async (url: string, title: string, category: string) => {
+  const details = extractVideoDetails(url);
+  if (!details) throw new Error("अमान्य YouTube लिंक");
+
+  await addDoc(collection(db, "videos"), {
+    title,
+    videoId: details.videoId,
+    thumbnailUrl: details.thumbnailUrl,
+    category,
+    order: Date.now()
   });
 };
