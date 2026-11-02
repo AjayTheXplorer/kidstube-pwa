@@ -116,7 +116,7 @@ export default function PlayerScreen() {
               <div 
                 key={video.id} 
                 // थंबनेल का साइज़ छोटा (h-[75px]) कर दिया गया है ताकि एक बार में 5-6 दिखें
-                className="shrink-0 h-18.75 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
+                className="shrink-0 h-14 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
                   navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.category)}`, { replace: true });
