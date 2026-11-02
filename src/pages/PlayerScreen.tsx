@@ -7,7 +7,7 @@ export default function PlayerScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // const videoTitle = searchParams.get('title') || 'वीडियो चल रहा है...';
+  // Unused videoTitle को हटा दिया गया है
   const category = searchParams.get('category') || 'Sanskrit';
 
   const [isMinimized, setIsMinimized] = useState(false);
@@ -46,8 +46,7 @@ export default function PlayerScreen() {
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1`;
 
   return (
-    // 1. यहाँ h-[100dvh] का इस्तेमाल किया गया है ताकि मोबाइल ब्राउज़र बार के कारण लेआउट न बिगड़े
-    <div className="fixed top-0 left-0 w-full h-[100dvh] z-50 bg-black flex flex-col overflow-hidden text-white">
+    <div className="fixed top-0 left-0 w-full h-dvh z-50 bg-black flex flex-col overflow-hidden text-white">
       
       {/* वीडियो कंटेनर */}
       <div 
@@ -85,9 +84,9 @@ export default function PlayerScreen() {
         </div>
 
         {/* 
-          टॉगल बटन: अब इसे bottom-1 right-1 पर सेट किया है ताकि यह वॉटरमार्क के बिल्कुल ऊपर रहे।
+          टॉगल बटन: bottom-2 right-2 देकर थोड़ा मार्जिन दिया गया है
         */}
-        <div className="absolute bottom-1 right-1 z-20">
+        <div className="absolute bottom-2 right-2 z-20">
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
             className="p-3 bg-black/80 hover:bg-black/90 border-2 border-yellow-400 text-yellow-400 rounded-xl transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)]"
@@ -108,23 +107,24 @@ export default function PlayerScreen() {
       {/* सजेशन लिस्ट */}
       <div 
         className={`w-full bg-slate-900 transition-all duration-300 ease-in-out overflow-hidden ${
-          isMinimized ? 'flex-1 flex items-center' : 'h-0'
+          isMinimized ? 'flex-1 flex items-center py-2' : 'h-0'
         }`}
       >
-        <div className="flex overflow-x-auto gap-4 px-4 py-2 scrollbar-hide h-full items-center relative z-30">
+        <div className="flex overflow-x-auto gap-3 px-4 h-full items-center scrollbar-hide relative z-30">
           {suggestedVideos.length > 0 ? (
             suggestedVideos.map((video) => (
               <div 
                 key={video.id} 
-                className="shrink-0 h-[85%] aspect-video cursor-pointer rounded-xl overflow-hidden shadow-lg border border-slate-700/50"
+                // थंबनेल का साइज़ छोटा (h-[75px]) कर दिया गया है ताकि एक बार में 5-6 दिखें
+                className="shrink-0 h-18.75 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
-                  navigate(`/play/${video.videoId}?title=${encodeURIComponent(video.title)}&category=${encodeURIComponent(video.category)}`, { replace: true });
+                  navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.category)}`, { replace: true });
                 }}
               >
                 <img 
                   src={video.thumbnailUrl} 
-                  alt={video.title}
+                  alt="thumbnail"
                   className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                 />
               </div>
