@@ -7,7 +7,6 @@ export default function PlayerScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // Unused videoTitle को हटा दिया गया है
   const category = searchParams.get('category') || 'Sanskrit';
 
   const [isMinimized, setIsMinimized] = useState(false);
@@ -48,12 +47,9 @@ export default function PlayerScreen() {
   return (
     <div className="fixed top-0 left-0 w-full h-dvh z-50 bg-black flex flex-col overflow-hidden text-white">
       
-      {/* वीडियो कंटेनर */}
-      <div 
-        className={`relative w-full transition-all duration-300 ease-in-out bg-black ${
-          isMinimized ? 'h-[60dvh] shrink-0' : 'flex-1'
-        }`}
-      >
+      {/* वीडियो कंटेनर - flex-1 ताकि जब लिस्ट खुले तो यह बची हुई पूरी जगह ले */}
+      <div className="relative w-full flex-1 transition-all duration-300 ease-in-out bg-black">
+        
         {/* YouTube iframe */}
         <iframe
           className="absolute top-0 left-0 w-full h-full border-none"
@@ -67,8 +63,8 @@ export default function PlayerScreen() {
         {/* टाइमलाइन शील्ड */}
         <div className="absolute bottom-0 left-0 right-0 h-6 z-10 pointer-events-auto cursor-default"></div>
 
-        {/* वॉटरमार्क शील्ड */}
-        <div className="absolute bottom-0 right-0 w-45 h-17.5 z-10 pointer-events-auto cursor-default"></div>
+        {/* वॉटरमार्क शील्ड - w-48 h-20 स्टैंडर्ड क्लास है जो एरर नहीं देगा */}
+        <div className="absolute bottom-0 right-0 w-48 h-20 z-10 pointer-events-auto cursor-default"></div>
 
         {/* बैक बटन */}
         <div className="absolute top-4 left-4 z-20 pointer-events-none">
@@ -83,9 +79,7 @@ export default function PlayerScreen() {
           </button>
         </div>
 
-        {/* 
-          टॉगल बटन: bottom-2 right-2 देकर थोड़ा मार्जिन दिया गया है
-        */}
+        {/* टॉगल बटन */}
         <div className="absolute bottom-2 right-2 z-20">
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
@@ -105,9 +99,10 @@ export default function PlayerScreen() {
       </div>
 
       {/* सजेशन लिस्ट */}
+      {/* h-20 (80px) = h-16 (64px) थंबनेल + 8px टॉप/बॉटम पैडिंग */}
       <div 
-        className={`w-full bg-slate-900 transition-all duration-300 ease-in-out overflow-hidden ${
-          isMinimized ? 'flex-1 flex items-center py-2' : 'h-0'
+        className={`w-full bg-slate-900 transition-all duration-300 ease-in-out overflow-hidden shrink-0 ${
+          isMinimized ? 'h-20 opacity-100' : 'h-0 opacity-0'
         }`}
       >
         <div className="flex overflow-x-auto gap-3 px-4 h-full items-center scrollbar-hide relative z-30">
@@ -115,8 +110,7 @@ export default function PlayerScreen() {
             suggestedVideos.map((video) => (
               <div 
                 key={video.id} 
-                // थंबनेल का साइज़ छोटा (h-[75px]) कर दिया गया है ताकि एक बार में 5-6 दिखें
-                className="shrink-0 h-14 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
+                className="shrink-0 h-16 aspect-video cursor-pointer rounded-lg overflow-hidden shadow-md border border-slate-700/50"
                 onClick={() => {
                   setIsMinimized(false); 
                   navigate(`/play/${video.videoId}?category=${encodeURIComponent(video.category)}`, { replace: true });
