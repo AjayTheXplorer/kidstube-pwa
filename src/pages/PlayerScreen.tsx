@@ -48,7 +48,7 @@ export default function PlayerScreen() {
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden text-white">
       
-      {/* वीडियो कंटेनर */}
+      {/* वीडियो कंटेनर (अब इसमें relative पोजीशन है, ताकि बटन इसी के अंदर रहे) */}
       <div 
         className={`relative w-full transition-all duration-300 ease-in-out bg-black ${
           isMinimized ? 'h-[70%]' : 'flex-1'
@@ -64,17 +64,10 @@ export default function PlayerScreen() {
           referrerPolicy="strict-origin-when-cross-origin"
         ></iframe>
 
-        {/* 
-          टाइमलाइन शील्ड (Timeline Shield)
-          यह नीचे की पट्टी (टाइमलाइन) को क्लिक होने से रोकेगा।
-        */}
+        {/* टाइमलाइन शील्ड (टाइमलाइन को ब्लॉक करने के लिए) */}
         <div className="absolute bottom-0 left-0 right-0 h-[24px] z-10 pointer-events-auto cursor-default"></div>
 
-        {/* 
-          वॉटरमार्क शील्ड (Watermark Shield)
-          यह दाईं ओर सिर्फ वॉटरमार्क के साइज़ (लगभग 120x40) की होगी।
-          इससे लिस्ट के क्लिक पर कोई असर नहीं पड़ेगा।
-        */}
+        {/* वॉटरमार्क शील्ड (आपके द्वारा सेट किया गया साइज़) */}
         <div className="absolute bottom-0 right-0 w-[180px] h-[70px] z-10 pointer-events-auto cursor-default"></div>
 
         {/* बैक बटन */}
@@ -87,6 +80,28 @@ export default function PlayerScreen() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             <span className="font-semibold text-sm text-white">वापस जाएं</span>
+          </button>
+        </div>
+
+        {/* 
+          फिक्स किया गया टॉगल बटन: 
+          अब यह fixed नहीं है, बल्कि absolute है और वीडियो कंटेनर के अंदर है।
+          इसलिए यह हमेशा वीडियो के निचले दाएं कोने पर ही रहेगा।
+        */}
+        <div className="absolute bottom-2 right-2 z-20">
+          <button 
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="p-3 bg-black/80 hover:bg-black/90 border-2 border-yellow-400 text-yellow-400 rounded-xl transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)]"
+          >
+            {isMinimized ? (
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4" />
+              </svg>
+            ) : (
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
@@ -119,24 +134,6 @@ export default function PlayerScreen() {
             <p className="text-slate-500 text-sm px-4">इस श्रेणी में अभी और वीडियो नहीं हैं।</p>
           )}
         </div>
-      </div>
-
-      {/* फिक्स्ड टॉगल बटन */}
-      <div className="fixed bottom-4 right-[5px] z-50">
-        <button 
-          onClick={() => setIsMinimized(!isMinimized)}
-          className="p-3 bg-black/80 hover:bg-black/90 border-2 border-yellow-400 text-yellow-400 rounded-xl transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)]"
-        >
-          {isMinimized ? (
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4" />
-            </svg>
-          ) : (
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
       </div>
 
     </div>
