@@ -46,12 +46,13 @@ export default function PlayerScreen() {
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden text-white">
+    // 1. यहाँ h-[100dvh] का इस्तेमाल किया गया है ताकि मोबाइल ब्राउज़र बार के कारण लेआउट न बिगड़े
+    <div className="fixed top-0 left-0 w-full h-[100dvh] z-50 bg-black flex flex-col overflow-hidden text-white">
       
-      {/* वीडियो कंटेनर (अब इसमें relative पोजीशन है, ताकि बटन इसी के अंदर रहे) */}
+      {/* वीडियो कंटेनर */}
       <div 
         className={`relative w-full transition-all duration-300 ease-in-out bg-black ${
-          isMinimized ? 'h-[70%]' : 'flex-1'
+          isMinimized ? 'h-[60dvh] flex-shrink-0' : 'flex-1'
         }`}
       >
         {/* YouTube iframe */}
@@ -64,10 +65,10 @@ export default function PlayerScreen() {
           referrerPolicy="strict-origin-when-cross-origin"
         ></iframe>
 
-        {/* टाइमलाइन शील्ड (टाइमलाइन को ब्लॉक करने के लिए) */}
+        {/* टाइमलाइन शील्ड */}
         <div className="absolute bottom-0 left-0 right-0 h-[24px] z-10 pointer-events-auto cursor-default"></div>
 
-        {/* वॉटरमार्क शील्ड (आपके द्वारा सेट किया गया साइज़) */}
+        {/* वॉटरमार्क शील्ड */}
         <div className="absolute bottom-0 right-0 w-[180px] h-[70px] z-10 pointer-events-auto cursor-default"></div>
 
         {/* बैक बटन */}
@@ -84,11 +85,9 @@ export default function PlayerScreen() {
         </div>
 
         {/* 
-          फिक्स किया गया टॉगल बटन: 
-          अब यह fixed नहीं है, बल्कि absolute है और वीडियो कंटेनर के अंदर है।
-          इसलिए यह हमेशा वीडियो के निचले दाएं कोने पर ही रहेगा।
+          टॉगल बटन: अब इसे bottom-1 right-1 पर सेट किया है ताकि यह वॉटरमार्क के बिल्कुल ऊपर रहे।
         */}
-        <div className="absolute bottom-2 right-2 z-20 border-2 border-yellow-400 rounded-xl pointer-events-auto transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)] backdrop-blur-sm">
+        <div className="absolute bottom-1 right-1 z-20">
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
             className="p-3 bg-black/80 hover:bg-black/90 border-2 border-yellow-400 text-yellow-400 rounded-xl transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)]"
@@ -109,7 +108,7 @@ export default function PlayerScreen() {
       {/* सजेशन लिस्ट */}
       <div 
         className={`w-full bg-slate-900 transition-all duration-300 ease-in-out overflow-hidden ${
-          isMinimized ? 'h-[30%] flex items-center' : 'h-0'
+          isMinimized ? 'flex-1 flex items-center' : 'h-0'
         }`}
       >
         <div className="flex overflow-x-auto gap-4 px-4 py-2 scrollbar-hide h-full items-center relative z-30">
