@@ -88,7 +88,7 @@ export default function PlayerScreen() {
           अब यह fixed नहीं है, बल्कि absolute है और वीडियो कंटेनर के अंदर है।
           इसलिए यह हमेशा वीडियो के निचले दाएं कोने पर ही रहेगा।
         */}
-        <div className="absolute bottom-2 right-2 z-20">
+        <div className="absolute bottom-2 right-2 z-20 border-2 border-yellow-400 rounded-xl pointer-events-auto transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)] backdrop-blur-sm">
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
             className="p-3 bg-black/80 hover:bg-black/90 border-2 border-yellow-400 text-yellow-400 rounded-xl transition-all shadow-[0_0_15px_rgba(250,204,21,0.6)]"
