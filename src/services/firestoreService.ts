@@ -1,12 +1,10 @@
 import { 
-  collection, query, where, orderBy, onSnapshot, addDoc, doc, setDoc
+  collection, query, where, orderBy, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { VideoItem, Category } from "../types";
 
-// --- YouTube URL से ID और Thumbnail निकालना (अधिक सुरक्षित) ---
 export const extractVideoDetails = (url: string) => {
-  // यह रेगुलर एक्सप्रेशन लगभग सभी YouTube URL फॉर्मेट को सपोर्ट करता है
   const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
   const match = url.match(regExp);
   const videoId = match ? match[1] : null;
@@ -19,7 +17,6 @@ export const extractVideoDetails = (url: string) => {
   };
 };
 
-// --- कैटेगरीज़ ---
 export const subscribeToCategories = (callback: (categories: Category[]) => void) => {
   const q = query(collection(db, "categories"), orderBy("order", "asc"));
   return onSnapshot(q, (snapshot) => {
@@ -31,7 +28,6 @@ export const subscribeToCategories = (callback: (categories: Category[]) => void
   });
 };
 
-// parentId डिफ़ॉल्ट रूप से null रहेगा (यानी मुख्य कैटेगरी)
 export const addCategoryToDb = async (name: string, parentId: string | null = null) => {
   await addDoc(collection(db, "categories"), {
     name,
@@ -39,6 +35,11 @@ export const addCategoryToDb = async (name: string, parentId: string | null = nu
     isDefault: false,
     order: Date.now()
   });
+};
+
+export const updateCategoryInDb = async (id: string, newName: string) => {
+  const docRef = doc(db, "categories", id);
+  await updateDoc(docRef, { name: newName });
 };
 
 export const setDefaultCategoryInDb = async (categoryName: string) => {
@@ -50,20 +51,16 @@ export const subscribeToDefaultCategory = (callback: (name: string) => void) => 
   const docRef = doc(db, "config", "default_category");
   return onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) callback(docSnap.data().name);
-    else callback(""); // अगर डिफ़ॉल्ट सेट नहीं है
+    else callback(""); 
   });
 };
 
-// --- वीडियोज़ (अब यह कैटेगरी आईडीज़ की एक लिस्ट (Array) लेगा) ---
 export const subscribeToVideos = (categoryIds: string[], callback: (videos: VideoItem[]) => void) => {
   if (!categoryIds || categoryIds.length === 0) {
     callback([]);
-    return () => {}; // खाली अनसब्सक्राइब फंक्शन
+    return () => {}; 
   }
 
-  // Firestore में 'in' ऑपरेटर का इस्तेमाल करके एक साथ कई कैटेगरीज़ के वीडियो लाएं
-  // ध्यान दें: Firestore 'in' में अधिकतम 10 आइटम्स ही सपोर्ट करता है।
-  // फिलहाल हमारे पास 10 से कम सब-कैटेगरीज़ होंगी, तो यह बिल्कुल सही काम करेगा।
   const q = query(
     collection(db, "videos"),
     where("categoryId", "in", categoryIds.slice(0, 10)), 
@@ -79,7 +76,7 @@ export const subscribeToVideos = (categoryIds: string[], callback: (videos: Vide
   });
 };
 
-export const addVideoToDb = async (url: string, title: string, categoryId: string) => {
+export const addVideoToDb = async (url: string, title: string, categoryId: string, channelName?: string) => {
   const details = extractVideoDetails(url);
   if (!details) throw new Error("अमान्य YouTube लिंक");
 
@@ -87,7 +84,23 @@ export const addVideoToDb = async (url: string, title: string, categoryId: strin
     title,
     videoId: details.videoId,
     thumbnailUrl: details.thumbnailUrl,
-    categoryId, // अब ID सेव करेंगे
+    categoryId,
+    channelName: channelName || null, 
     order: Date.now()
   });
+};
+
+// यहाँ categoryId अपडेट करने का ऑप्शन जोड़ दिया गया है
+export const updateVideoInDb = async (id: string, title: string, channelName: string | undefined, categoryId: string) => {
+  const docRef = doc(db, "videos", id);
+  await updateDoc(docRef, {
+    title,
+    channelName: channelName || null,
+    categoryId: categoryId 
+  });
+};
+
+export const deleteVideoFromDb = async (id: string) => {
+  const docRef = doc(db, "videos", id);
+  await deleteDoc(docRef);
 };
