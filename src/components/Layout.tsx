@@ -1,9 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 
 export default function Layout() {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // PWA इंस्टॉल के लिए स्टेट
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    // इंस्टॉल प्रॉम्प्ट इवेंट को पकड़ें
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    // चेक करें कि ऐप पहले से इंस्टॉल है या नहीं
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    // जब ऐप इंस्टॉल हो जाए, तो स्टेट अपडेट करें
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    
+    // ब्राउज़र का इंस्टॉल डायलॉग दिखाएं
+    installPrompt.prompt();
+    
+    // यूज़र की पसंद चेक करें (Accept/Reject)
+    const { outcome } = await installPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    
+    // इवेंट को रीसेट करें
+    setInstallPrompt(null);
+    setIsDrawerOpen(false);
+  };
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -32,7 +76,7 @@ export default function Layout() {
             <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
           </div>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
             <button onClick={() => handleNavigation('/')} className="flex items-center gap-3 p-3 hover:bg-slate-700 rounded-lg text-left">
               🏠 होम
             </button>
@@ -42,12 +86,25 @@ export default function Layout() {
             <button onClick={() => handleNavigation('/settings')} className="flex items-center gap-3 p-3 hover:bg-slate-700 rounded-lg text-left">
               ⚙️ सेटिंग्स
             </button>
-            
-            <div className="mt-auto pt-4 border-t border-slate-700">
-              <button onClick={() => handleNavigation('/admin')} className="flex items-center gap-3 p-3 bg-yellow-500 text-black font-bold hover:bg-yellow-400 rounded-lg w-full">
-                एडमिन पैनल
+          </div>
+
+          <div className="mt-auto pt-4 border-t border-slate-700 flex flex-col gap-3">
+            {/* डाउनलोड ऐप बटन (सिर्फ तब दिखेगा जब ऐप इंस्टॉल हो सकता हो) */}
+            {installPrompt && !isInstalled && (
+              <button 
+                onClick={handleInstallClick} 
+                className="flex items-center justify-center gap-2 p-3 bg-green-600 text-white font-bold hover:bg-green-500 rounded-lg w-full shadow-lg transition-transform hover:scale-105"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                ऐप डाउनलोड करें
               </button>
-            </div>
+            )}
+
+            <button onClick={() => handleNavigation('/admin')} className="flex items-center justify-center gap-2 p-3 bg-yellow-500 text-black font-bold hover:bg-yellow-400 rounded-lg w-full">
+              एडमिन पैनल
+            </button>
           </div>
         </div>
         <div className="flex-1 bg-black/60" onClick={() => setIsDrawerOpen(false)}></div>
