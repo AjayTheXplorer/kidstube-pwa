@@ -9,13 +9,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // यह जोड़ें: ताकि अपडेट होने पर पुराना कैश हट जाए
-      selfDestroying: true, 
+      // selfDestroying को हटा दें, यह कभी-कभी अपडेट को रोक देता है
       includeAssets: ['icon.png'], 
       workbox: {
         maximumFileSizeToCacheInBytes: 3000000,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // यह जोड़ें: नई फाइलें हमेशा नेटवर्क से लोड हों
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -28,37 +26,36 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: false // डेवलपमेंट में PWA ऑफ रहेगा
+        enabled: false
       },
       manifest: {
-          "name": "KidsTube",
-          "short_name": "KidsTube",
-          "start_url": "/",
-          "display": "standalone",
-          "background_color": "#0f172a",
-          "theme_color": "#1e3a8a",
-          "orientation": "portrait",
-          icons: [
-                  {
-                    src: '/icon.png',
-                    sizes: '192x192',
-                    type: 'image/png',
-                    purpose: 'any' // <-- यहाँ सिर्फ 'any' करें
-                  },
-                  {
-                    src: '/icon.png',
-                    sizes: '512x512',
-                    type: 'image/png',
-                    purpose: 'any' // <-- यहाँ भी सिर्फ 'any' करें
-                  },
-                  // (वैकल्पिक) Android के लिए एक अलग मास्केबल आइकन
-                  {
-                    src: '/icon.png', 
-                    sizes: '512x512',
-                    type: 'image/png',
-                    purpose: 'maskable' 
-                  }
-                ]
+        name: "KidsTube",
+        short_name: "KidsTube",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#0f172a",
+        theme_color: "#1e3a8a",
+        orientation: "portrait", // यह अब पोर्ट्रेट है
+        icons: [
+          {
+            src: '/icon.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon.png', 
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable' 
+          }
+        ]
       }
     })
   ],
