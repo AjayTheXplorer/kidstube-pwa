@@ -4,6 +4,7 @@ import { useCategories } from '../hooks/useCategories';
 import { useVideos } from '../hooks/useVideos';
 import CategoryTabs from '../components/CategoryTabs';
 import VideoCard from '../components/VideoCard';
+import type { VideoItem } from '../types'; // VideoItem टाइप इम्पोर्ट करें
 
 export default function HomeScreen() {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ export default function HomeScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [categoryIdsToFetch, setCategoryIdsToFetch] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // शफल किए गए वीडियो को स्टोर करने के लिए नया स्टेट
+  const [shuffledVideos, setShuffledVideos] = useState<VideoItem[]>([]);
 
   const rootCategories = categories.filter(c => !c.parentId);
 
@@ -44,13 +48,31 @@ export default function HomeScreen() {
 
   const { videos } = useVideos(categoryIdsToFetch);
 
+  // जब भी डेटाबेस से वीडियो लोड हों, उन्हें शफल करके स्टोर करें
+  useEffect(() => {
+    if (videos.length > 0) {
+      // यहाँ हमने एक कॉपी बनाई है ताकि ओरिजिनल एरे न बदले
+      const videosCopy = [...videos]; 
+      
+      // फिशर-येट्स शफल एल्गोरिदम
+      for (let i = videosCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [videosCopy[i], videosCopy[j]] = [videosCopy[j], videosCopy[i]];
+      }
+      
+      setShuffledVideos(videosCopy);
+    } else {
+      setShuffledVideos([]);
+    }
+  }, [videos]); // यह तभी चलेगा जब वीडियो का डेटा बदलेगा
+
   const getSubCategoryName = (categoryId: string): string => {
     const cat = categories.find(c => c.id === categoryId);
     return cat ? cat.name : '';
   };
 
-  // सर्च फ़िल्टर लॉजिक
-  const filteredVideos = videos.filter(v => 
+  // सर्च फ़िल्टर लॉजिक (अब shuffledVideos पर लागू होगा)
+  const filteredVideos = shuffledVideos.filter(v => 
     v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     getSubCategoryName(v.categoryId).toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -80,7 +102,7 @@ export default function HomeScreen() {
           selectedCategory={selectedCategoryId} 
           onSelectCategory={(id) => {
             setSelectedCategoryId(id);
-            navigate(`/?categoryId=${id}`, { replace: true }); // URL अपडेट करें
+            navigate(`/?categoryId=${id}`, { replace: true });
           }} 
         />
       )}
