@@ -38,13 +38,27 @@ export default defineConfig({
           "background_color": "#0f172a",
           "theme_color": "#1e3a8a",
           "orientation": "landscape",
-          "icons": [
-            {
-              "src": "/vite.svg",
-              "sizes": "192x192",
-              "type": "image/svg+xml"
-            }
-          ]
+          icons: [
+                  {
+                    src: '/icon.png',
+                    sizes: '192x192',
+                    type: 'image/png',
+                    purpose: 'any' // <-- यहाँ सिर्फ 'any' करें
+                  },
+                  {
+                    src: '/icon.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any' // <-- यहाँ भी सिर्फ 'any' करें
+                  },
+                  // (वैकल्पिक) Android के लिए एक अलग मास्केबल आइकन
+                  {
+                    src: '/icon.png', 
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'maskable' 
+                  }
+                ]
       }
     })
   ],
