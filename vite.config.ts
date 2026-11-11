@@ -9,7 +9,6 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // selfDestroying को हटा दें, यह कभी-कभी अपडेट को रोक देता है
       includeAssets: ['icon.png'], 
       workbox: {
         maximumFileSizeToCacheInBytes: 3000000,
@@ -29,13 +28,14 @@ export default defineConfig({
         enabled: false
       },
       manifest: {
+        id: "/", 
         name: "KidsTube",
         short_name: "KidsTube",
         start_url: "/",
         display: "standalone",
         background_color: "#0f172a",
         theme_color: "#1e3a8a",
-        orientation: "portrait", // यह अब पोर्ट्रेट है
+        orientation: "portrait", // यह पोर्ट्रेट है
         icons: [
           {
             src: '/icon.png',
