@@ -37,7 +37,7 @@ export default defineConfig({
           "display": "standalone",
           "background_color": "#0f172a",
           "theme_color": "#1e3a8a",
-          "orientation": "any",
+          "orientation": "portrait",
           icons: [
                   {
                     src: '/icon.png',
